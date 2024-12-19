@@ -1,0 +1,166 @@
+Edition: 3.0.0
+Type: Project
+Name: lobechat
+Version: dev
+Provider:
+  - 阿里云 # 取值内容参考：https://api.devsapp.cn/v3/common/args.html
+Description: 本项目快速创建并部署 LobeChat 应用到阿里云云原生应用平台 CAP 。
+HomePage: https://www.serverless-devs.com
+Tags: #标签详情
+  - AI
+  - 大模型
+  - LLM
+Category: 人工智能 # 取值内容参考：https://api.devsapp.cn/v3/common/args.html
+Service: # 使用的服务
+  函数计算: # 取值内容参考：https://api.devsapp.cn/v3/common/args.html
+    Authorities: #权限描述
+      - AliyunFCFullAccess # 所需要的权限
+
+  云数据库RDS:
+    Authorities: 
+      - AliyunRDSFullAccess
+    Description: LobeChat 应用中使用的数据库。默认类型：PostgreSQL16.0，实例规格：pg.x8.medium.1
+
+  专有网络:
+    Authorities:
+      - AliyunFCServerlessDevsRolePolicy
+    Description: 云数据库所在的专有网络
+
+Organization: 阿里云函数计算（FC） # 所属组织
+Effective: Public # 是否公开，取值：Public，Private，Organization
+Parameters:
+  type: object
+  additionalProperties: false # 不允许增加其他属性
+  required: # 必填项
+    - region
+    - name
+    - functionName
+    - QWEN_API_KEY
+    - CHOOSE_TO_AUTH
+    - db_name
+    - db_database
+    - db_username
+    - db_password
+    - KEY_VAULTS_SECRET
+    - S3_ENDPOINT
+    - S3_BUCKET
+    - NEXT_AUTH_SECRET
+    - AUTH_AUTH0_ID
+    - AUTH_AUTH0_ISSUER
+    - AUTH_AUTH0_SECRET
+    - ACCESS_CODE
+  properties:
+    # 基本参数
+    region:
+      title: 地域
+      type: string
+      default: cn-hangzhou
+      description: 创建应用所在的地区
+      enum:
+        - cn-hangzhou
+        - cn-shanghai
+
+    name:
+      title: 项目名
+      type: string
+      default: lobechat_${default-suffix}
+      pattern: "^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$"
+      description: 项目名称，只能包含字母、数字、下划线和中划线。不能以数字、中划线开头。长度在 1-128 之间
+
+    functionName:
+      title: 函数名称
+      type: string
+      default: lobechat-${default-suffix}
+      pattern: "^[a-z][a-z0-9-]{0,127}$"
+      description: 只能包含小写字母、数字、中划线。不能以数字、中划线开头。长度在 1-128 之间。
+
+    QWEN_API_KEY:
+      title: QWEN_API_KEY
+      type: secret
+      description: 对应 Qwen 的 API KEY，需要到百炼控制台创建 & 获取，说明文档：https://help.aliyun.com/zh/model-studio/apikey?spm=a2c4g.11186623.0.i20
+
+    CHOOSE_TO_AUTH:
+      title: 选择是否需要身份验证
+      type: boolean
+      default: true
+      description: 选择是否需要身份验证
+
+    # 数据库
+    db_name:
+      title: 实例名称
+      type: string
+      default: "lobechat_pgsql_by_CAP"
+      description: Postgresql 实例名称
+      cond: CHOOSE_TO_AUTH==true
+
+    db_database:
+      title: 数据库名称
+      type: string
+      default: "lobechat_database"
+      description: Postgresql 数据库名称
+      cond: CHOOSE_TO_AUTH==true
+
+    db_username:
+      title: 用户名称
+      type: string
+      default: "cap"
+      description: Postgresql 数据库用户名
+      cond: CHOOSE_TO_AUTH==true
+
+    db_password:
+      title: 密码
+      type: string
+      default: "AwesomeCAP_2024"
+      description: Postgresql 数据库密码
+      cond: CHOOSE_TO_AUTH==true
+
+    KEY_VAULTS_SECRET:
+      title: KEY_VAULTS_SECRET
+      type: secret
+      description: 加密数据库等敏感信息的密钥，您可以使用以下命令生成密钥： openssl rand -base64 32
+      cond: CHOOSE_TO_AUTH==true
+
+    
+    # OSS
+    S3_ENDPOINT:
+      title: OSS Endpoint
+      type: string
+      description: "OSS 的地域节点，到 OSS 控制台获取，格式如下：oss-cn-hangzhou.aliyuncs.com"
+      cond: CHOOSE_TO_AUTH==true
+    
+    S3_BUCKET:
+      title: OSS BucketName
+      type: string
+      description: 存储桶名称，到 OSS 控制台获取，例如：bucket-name"
+      cond: CHOOSE_TO_AUTH==true
+
+    # 身份验证
+    NEXT_AUTH_SECRET:
+      title: NEXT_AUTH_SECRET
+      type: secret
+      description: 用于加密 Auth.js 会话令牌的密钥。您可以使用以下命令生成密钥： openssl rand -base64 32
+      cond: CHOOSE_TO_AUTH==true
+
+    AUTH_AUTH0_ID:
+      title: AUTH_AUTH0_ID
+      type: string
+      description: Auth0 应用程序的 Client ID，在 Auth0 中创建应用后获取
+      cond: CHOOSE_TO_AUTH==true
+
+    AUTH_AUTH0_SECRET:
+      title: AUTH_AUTH0_SECRET
+      type: secret
+      description: Auth0 应用程序的 Client Secret，在 Auth0 中创建应用后获取
+      cond: CHOOSE_TO_AUTH==true
+
+    AUTH_AUTH0_ISSUER:
+      title: AUTH_AUTH0_ISSUER
+      type: string
+      description: Auth0 应用程序的 Issuer URL，在 Auth0 中创建应用后获取
+      cond: CHOOSE_TO_AUTH==true
+
+    # LobeChat 密码
+    ACCESS_CODE:
+      title: ACCESS_CODE
+      type: secret
+      description: 添加访问 LobeChat 服务的密码，你可以设置一个长密码以防被爆破

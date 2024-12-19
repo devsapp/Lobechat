@@ -1,0 +1,101 @@
+# ------------------------------------
+#   官方手册: https://docs.serverless-devs.com/user-guide/aliyun/#fc3
+#   常见小贴士: https://manual.serverless-devs.com/user-guide/tips/
+#   有问题快来钉钉群问一下吧：33947367
+# ------------------------------------
+edition: 3.0.0
+name: lobechat-app
+access: "{{ access }}"
+
+vars: 
+  region: "{{ region }}"
+  name: "{{ name }}" #这里的 name 是 project name，用于作为资源前缀
+  functionName: "{{ functionName }}"
+  imageUrl: "registry.cn-hangzhou.aliyuncs.com/fc-demo2/ohyee-test:{{ if  CHOOSE_TO_AUTH == true }}lobechat-database-v0.0.1{{else}}lobechat-v1{{/ if }}"
+  bucketName: "{{ S3_BUCKET }}"
+  bucketEndpoint: "{{ S3_ENDPOINT }}"
+
+actions:
+  complete-deploy:
+    - component: fc3 invoke -e "{}" --silent
+
+resources:
+  PostgreSQL:
+    component: rds
+    props:
+      region: "${vars.region}"
+      name: "{{ db_name }}"
+      engine: "PostgreSQL:16.0"
+      database: "{{ db_database }}"
+      username: "{{ db_username }}"
+      password: "{{ db_password }}"
+      vpcID: auto
+      extensions:
+        - name: vector
+
+  LobeChat:
+    component: fc3
+    actions:
+      complete-deploy:
+        - component: fc3 invoke -e "{}" --silent
+      pre-deploy:
+        - run: bash ./base64-generation
+            
+    props:
+      region: "${vars.region}" 
+      functionName: "${vars.functionName}"
+      description: "基于函数计算 FC 托管 LobeChat 应用"
+
+      instanceConcurrency: 100
+      cpu: 2
+      memorySize: 4096
+      diskSize: 512
+      timeout: 600
+      
+      # 运行时
+      runtime: custom-container
+      customContainerConfig:
+        port: 3210
+        image: ${vars.imageUrl} 
+
+      vpcConfig: 
+          vpcId:  "${resources.PostgreSQL.props.vpcID}"
+          securityGroupId: auto
+          vSwitchIds: auto
+
+      customDomain:
+        protocol: "HTTP"
+        route:
+          path: "/*"
+          qualifier: "LATEST"
+        domainName: auto
+
+      {{ if  CHOOSE_TO_AUTH == true }}
+      environmentVariables: 
+        ACCESS_CODE: {{ ACCESS_CODE }}
+        QWEN_API_KEY: {{ QWEN_API_KEY }}
+        APP_URL: "https://${vars.functionName}.fcv3.${config('AccountID')}.${vars.region}.fc.devsapp.net"
+        AUTH_AUTH0_ID: {{ AUTH_AUTH0_ID }}
+        AUTH_AUTH0_ISSUER: {{ AUTH_AUTH0_ISSUER }}
+        AUTH_AUTH0_SECRET: {{ AUTH_AUTH0_SECRET }}
+        DATABASE_URL: "postgres://${resources.PostgreSQL.props.username}:${resources.PostgreSQL.props.password}@${resources.PostgreSQL.output.host}:5432/${resources.PostgreSQL.props.database}"
+        DEFAULT_AGENT_CONFIG: "provider=qwen"
+        KEY_VAULTS_SECRET: "{{  KEY_VAULTS_SECRET }}"
+        NEXT_AUTH_SECRET: "{{ NEXT_AUTH_SECRET }}"
+        NEXT_AUTH_SSO_PROVIDERS: "auth0"
+        NEXT_PUBLIC_SERVICE_MODE: "server"
+        NEXTAUTH_URL: "https://${vars.functionName}.fcv3.${config('AccountID')}.${vars.region}.fc.devsapp.net/api/auth"
+        S3_ACCESS_KEY_ID: ${config('AccessKeyID')}
+        S3_BUCKET: ${vars.bucketName}
+        S3_ENDPOINT: "https://${vars.bucketEndpoint}"
+        S3_PUBLIC_DOMAIN: "https://${vars.bucketName}.${vars.bucketEndpoint}"
+        S3_REGION: ${vars.region}
+        S3_SECRET_ACCESS_KEY: ${config('AccessKeySecret')}
+        NODE_TLS_REJECT_UNAUTHORIZED: 0
+
+      {{ else }}
+      environmentVariables: 
+        ACCESS_CODE: {{ ACCESS_CODE }}
+        QWEN_API_KEY: {{ QWEN_API_KEY }}
+        APP_URL: "https://${vars.functionName}.fcv3.${config('AccountID')}.${vars.region}.fc.devsapp.net"
+      {{ /if}}
