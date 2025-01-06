@@ -50,6 +50,15 @@
    
 </deploy>
 
+## 项目架构图
+
+<framework id="flushContent">
+
+![](https://img.alicdn.com/imgextra/i2/O1CN01K6LJ1123RTHz5HkJT_!!6000000007252-0-tps-1128-506.jpg
+)
+
+</framework>
+
 ## 案例介绍
 
 <appdetail id="flushContent">
@@ -77,10 +86,6 @@ LobeChat 核心能力：
 | 上传文件 / 文件夹 |  不支持 | 支持 |
 
 
-## 项目架构图
-
-![](https://img.alicdn.com/imgextra/i2/O1CN01K6LJ1123RTHz5HkJT_!!6000000007252-0-tps-1128-506.jpg
-)
 ## 项目接入点
 项目部署成功后，您需要访问 LobeChat 服务的域名地址，就可以打开并使用 LobeChat 了
 
@@ -99,15 +104,18 @@ LobeChat 访问入口：`${resources.lobechat.output.customDomain.domainName}`
   2. 创建应用：点击左侧导航栏的「Applications」，切换到应用管理界面，点击右上角「Create Application」以创建应用。填写你想向组织用户显示的应用名称，可选择任意应用类型，点击「Create」。![](https://img.alicdn.com/imgextra/i4/O1CN014zX5ya1HDdlmiF6jC_!!6000000000724-0-tps-2083-510.jpg)
 ![](https://img.alicdn.com/imgextra/i2/O1CN01vSHTQy1J3DzgyRCH9_!!6000000000972-0-tps-864-779.jpg)
 
-3. 应用创建成功后，进入应用界面，需要在「Settings」中获取以下鉴权信息：`Domain` `Client ID` `Client Secret` ，用于部署时填写参数![](https://img.alicdn.com/imgextra/i1/O1CN01ENbLVC1unbtK4eOWf_!!6000000006082-0-tps-1245-700.jpg)
- **二、部署项目**：在 LobeChat 项目部署控制台，您需要给 Web 服务（本项目中名为 LobeChat 的服务）配置如下参数：
+  3. 应用创建成功后，进入应用界面，需要在「Settings」中获取以下鉴权信息：`Domain` `Client ID` `Client Secret` ，用于部署时填写参数![](https://img.alicdn.com/imgextra/i1/O1CN01ENbLVC1unbtK4eOWf_!!6000000006082-0-tps-1245-700.jpg)
+
+**二、部署项目**：在 LobeChat 项目部署控制台，您需要给 Web 服务（本项目中名为 LobeChat 的服务）配置如下参数：
    1. 步骤一中获取到的鉴权信息 `Domain` `Client ID` `Client Secret` ，以及 `NEXT_AUTH_SECRET`，用于加密 Auth.js 会话令牌的密钥，可以用 
  `openssl rand -base64 32` 命令生成
    2. OSS 的 BucketName 和 Endpoint，如果没有，请到 [OSS](https://oss.console.aliyun.com/overview) 控制台获取
    3. 另外，为了保障数据库等敏感信息不被泄露，您需要填写  `KEY_VAULTS_SECRET` 参数，可以用 `openssl rand -base64 32` 命令生成
    部署完成之后，您可以看到系统返回给您的项目地址
- **四、配置 Auth0 Allowed Callback URLs**：返回 [Auth0 Applications](https://manage.auth0.com/dashboard/us/dev-34fdqfx8mrw0s8t2/applications)，在 「Application Settings」 页签下，找到 「Application URIs」，填写 「Allowed Callback URLs」，格式为 `https://[your-domain]/api/auth/callback/auth0`，其中 `[your-domain]` 部分替换为步骤二中返回项目地址的域名
-**五、OSS 跨域配置**：登录 [OSS](https://oss.console.aliyun.com/overview) 控制台，进入目标 Bucket，在 「数据安全」页签下选择「跨域配置」，点击「创建规则」，配置如下参数
+  
+**三、配置 Auth0 Allowed Callback URLs**：返回 [Auth0 Applications](https://manage.auth0.com/dashboard/us/dev-34fdqfx8mrw0s8t2/applications)，在 「Application Settings」 页签下，找到 「Application URIs」，填写 「Allowed Callback URLs」，格式为 `https://[your-domain]/api/auth/callback/auth0`，其中 `[your-domain]` 部分替换为步骤二中返回项目地址的域名
+
+**四、OSS 跨域配置**：登录 [OSS](https://oss.console.aliyun.com/overview) 控制台，进入目标 Bucket，在 「数据安全」页签下选择「跨域配置」，点击「创建规则」，配置如下参数
     | 参数名 |  说明  | 示例值 |
     | --- |  --- | --- |
     | 来源 |  项目部署成功后返回的项目地址 | https://xxxx.cn-hangzhou.fc.devsapp.net |
@@ -120,7 +128,6 @@ LobeChat 访问入口：`${resources.lobechat.output.customDomain.domainName}`
 | --- |  --- | --- |
 | 函数名称 |  只能包含字母、数字和中划线。不能以数字、中划线开头。长度在 1-128 之间。 | lobechat-abcd |
 | OSS BucketName |  存储桶名称，到 OSS 控制台获取 | bucket-name |
-| OSS Endpoint |  OSS 的地域节点，到 OSS 控制台获取 | oss-cn-hangzhou.aliyuncs.com |
 | ACCESS_CODE |  添加访问 LobeChat 服务的密码，你可以设置一个长密码以防被爆破| lobechatxxxxxxxx |
 | QWEN_API_KEY |  对应 Qwen 的 API KEY，需要到百炼控制台创建 & 获取，说明文档：https://help.aliyun.com/zh/model-studio/apikey?spm=a2c4g.11186623.0.i20| sk-xxxxxxxx |
 | AUTH_AUTH0_ID | Auth0 应用程序的 Client ID，在 Auth0 中创建应用后获取| tAP2xxxxxxxxxok |
@@ -142,8 +149,11 @@ LobeChat 访问入口：`${resources.lobechat.output.customDomain.domainName}`
 | ACCESS_CODE |  添加访问 LobeChat 服务的密码，你可以设置一个长密码以防被爆破| lobechatxxxxxxxx |
 | QWEN_API_KEY |  对应 Qwen 的 API KEY，需要到百炼控制台创建 & 获取，说明文档：https://help.aliyun.com/zh/model-studio/apikey?spm=a2c4g.11186623.0.i20| sk-xxxxxxxx |
 
+</usedetail>
 
-##  二次开发
+## 二次开发指南
+
+<development id="flushContent">
 
 具体的使用流程请参考 [LobeChat 快速上手官方教程](https://lobehub.com/zh/docs/usage/start?utm_source=cloud)
 
@@ -161,9 +171,10 @@ Q: 如何使用最新版本的 LobeChat 或者进行更深层次的开发呢？
 A: 如果您想做更高层次的二次开发或者想自行更新 LobeChat 版本， 请基于 [LobeChat](https://github.com/lobehub/lobe-chat) 的源码开发，然后打成镜像，将项目中 Web 服务中的镜像修改为您的自定义镜像即可。
 > 注意：**在本项目中，LobeChat 的默认模型由 OpenAI 系列模型替换为 Qwen 系列模型**。如果想替换 LobeChat 中的默认模型，需要在 Web 服务（本项目中名为 LobeChat 的服务）的函数环境变量中，新增相应模型的 API KEY 变量，并将 LobeChat 源码中 `src/const/settings` 目录下文件中的默认模型替换成相应的模型 ID。境内的 region 推荐使用默认的 Dashscope 的 Base 地址，模型使用 Qwen 系列模型
 
-</usedetail>
+</development>
 
-## 注意事项
 
-<matters id="flushContent">
-</matters>
+
+
+
+

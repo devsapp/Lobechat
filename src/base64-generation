@@ -1,5 +1,0 @@
-KEY_VAULTS_SECRET=$(openssl rand -base64 32) 
-NEXT_AUTH_SECRET=$(openssl rand -base64 32) 
-
-echo "KEY_VAULTS_SECRET=$KEY_VAULTS_SECRET" >> base64-generation.txt
-echo "NEXT_AUTH_SECRET=$NEXT_AUTH_SECRET" >> base64-generation.txt

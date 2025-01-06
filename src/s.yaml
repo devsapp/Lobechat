@@ -11,36 +11,32 @@ vars:
   region: "{{ region }}"
   name: "{{ name }}" #这里的 name 是 project name，用于作为资源前缀
   functionName: "{{ functionName }}"
-  imageUrl: "registry.cn-hangzhou.aliyuncs.com/fc-demo2/ohyee-test:{{ if  CHOOSE_TO_AUTH == true }}lobechat-database-v0.0.1{{else}}lobechat-v1{{/ if }}"
+  imageUrl: "registry.cn-hangzhou.aliyuncs.com/fc-demo2/ohyee-test:{{ if  CHOOSE_TO_AUTH == true }}lobechat-database-v0.0.1{{else}}lobechat-v1{{/if}}"
   bucketName: "{{ S3_BUCKET }}"
-  bucketEndpoint: "{{ S3_ENDPOINT }}"
-
-actions:
-  complete-deploy:
-    - component: fc3 invoke -e "{}" --silent
+  bucketEndpoint: "oss-{{region}}.aliyuncs.com"
+  db_name: "{{ db_name }}"
+  db_database: "{{ db_database }}"
+  db_username: "{{ db_username }}"
+  db_password: "{{ db_password }}"
 
 resources:
+  {{if  CHOOSE_TO_AUTH == true}}
   PostgreSQL:
     component: rds
     props:
       region: "${vars.region}"
-      name: "{{ db_name }}"
+      name: "${vars.db_name}"
       engine: "PostgreSQL:16.0"
-      database: "{{ db_database }}"
-      username: "{{ db_username }}"
-      password: "{{ db_password }}"
+      database: "${vars.db_database}"
+      username: "${vars.db_username}"
+      password: "${vars.db_password}"
       vpcID: auto
       extensions:
         - name: vector
+  {{/if}}
 
   LobeChat:
     component: fc3
-    actions:
-      complete-deploy:
-        - component: fc3 invoke -e "{}" --silent
-      pre-deploy:
-        - run: bash ./base64-generation
-            
     props:
       region: "${vars.region}" 
       functionName: "${vars.functionName}"
@@ -58,10 +54,12 @@ resources:
         port: 3210
         image: ${vars.imageUrl} 
 
+      {{if  CHOOSE_TO_AUTH == true }}
       vpcConfig: 
-          vpcId:  "${resources.PostgreSQL.props.vpcID}"
-          securityGroupId: auto
-          vSwitchIds: auto
+        vpcId:  auto
+        securityGroupId: auto
+        vSwitchIds: auto
+      {{/if}}
 
       customDomain:
         protocol: "HTTP"
@@ -70,11 +68,11 @@ resources:
           qualifier: "LATEST"
         domainName: auto
 
-      {{ if  CHOOSE_TO_AUTH == true }}
       environmentVariables: 
         ACCESS_CODE: {{ ACCESS_CODE }}
         QWEN_API_KEY: {{ QWEN_API_KEY }}
         APP_URL: "https://${vars.functionName}.fcv3.${config('AccountID')}.${vars.region}.fc.devsapp.net"
+        {{if  CHOOSE_TO_AUTH == true}}
         AUTH_AUTH0_ID: {{ AUTH_AUTH0_ID }}
         AUTH_AUTH0_ISSUER: {{ AUTH_AUTH0_ISSUER }}
         AUTH_AUTH0_SECRET: {{ AUTH_AUTH0_SECRET }}
@@ -92,10 +90,5 @@ resources:
         S3_REGION: ${vars.region}
         S3_SECRET_ACCESS_KEY: ${config('AccessKeySecret')}
         NODE_TLS_REJECT_UNAUTHORIZED: 0
-
-      {{ else }}
-      environmentVariables: 
-        ACCESS_CODE: {{ ACCESS_CODE }}
-        QWEN_API_KEY: {{ QWEN_API_KEY }}
-        APP_URL: "https://${vars.functionName}.fcv3.${config('AccountID')}.${vars.region}.fc.devsapp.net"
-      {{ /if}}
+        PROVIDER: "qwen"
+        {{/if}}

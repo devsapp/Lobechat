@@ -42,7 +42,6 @@ Parameters:
     - db_username
     - db_password
     - KEY_VAULTS_SECRET
-    - S3_ENDPOINT
     - S3_BUCKET
     - NEXT_AUTH_SECRET
     - AUTH_AUTH0_ID
@@ -60,7 +59,7 @@ Parameters:
         - cn-hangzhou
         - cn-shanghai
 
-    name:
+    projectName:
       title: 项目名
       type: string
       default: lobechat_${default-suffix}
@@ -82,14 +81,15 @@ Parameters:
     CHOOSE_TO_AUTH:
       title: 选择是否需要身份验证
       type: boolean
-      default: true
-      description: 选择是否需要身份验证
+      default: false
+      description: 选择是否需要身份验证，使用知识库和文件上传功能需要开启身份验证
 
     # 数据库
     db_name:
-      title: 实例名称
+      title: 数据库实例名称
       type: string
       default: "lobechat_pgsql_by_CAP"
+      sensitive: false
       description: Postgresql 实例名称
       cond: CHOOSE_TO_AUTH==true
 
@@ -97,6 +97,7 @@ Parameters:
       title: 数据库名称
       type: string
       default: "lobechat_database"
+      sensitive: false
       description: Postgresql 数据库名称
       cond: CHOOSE_TO_AUTH==true
 
@@ -104,12 +105,14 @@ Parameters:
       title: 用户名称
       type: string
       default: "cap"
+      sensitive: false
       description: Postgresql 数据库用户名
       cond: CHOOSE_TO_AUTH==true
 
     db_password:
       title: 密码
-      type: string
+      type: secret
+      sensitive: true
       default: "AwesomeCAP_2024"
       description: Postgresql 数据库密码
       cond: CHOOSE_TO_AUTH==true
@@ -117,27 +120,27 @@ Parameters:
     KEY_VAULTS_SECRET:
       title: KEY_VAULTS_SECRET
       type: secret
+      sensitive: true
       description: 加密数据库等敏感信息的密钥，您可以使用以下命令生成密钥： openssl rand -base64 32
       cond: CHOOSE_TO_AUTH==true
 
     
-    # OSS
-    S3_ENDPOINT:
-      title: OSS Endpoint
-      type: string
-      description: "OSS 的地域节点，到 OSS 控制台获取，格式如下：oss-cn-hangzhou.aliyuncs.com"
-      cond: CHOOSE_TO_AUTH==true
-    
+    # OSS 
     S3_BUCKET:
       title: OSS BucketName
       type: string
       description: 存储桶名称，到 OSS 控制台获取，例如：bucket-name"
       cond: CHOOSE_TO_AUTH==true
+      required: true
+      x-bucket:
+        dependency:
+          - region
 
     # 身份验证
     NEXT_AUTH_SECRET:
       title: NEXT_AUTH_SECRET
       type: secret
+      sensitive: true
       description: 用于加密 Auth.js 会话令牌的密钥。您可以使用以下命令生成密钥： openssl rand -base64 32
       cond: CHOOSE_TO_AUTH==true
 
@@ -150,6 +153,7 @@ Parameters:
     AUTH_AUTH0_SECRET:
       title: AUTH_AUTH0_SECRET
       type: secret
+      sensitive: true
       description: Auth0 应用程序的 Client Secret，在 Auth0 中创建应用后获取
       cond: CHOOSE_TO_AUTH==true
 
@@ -162,5 +166,6 @@ Parameters:
     # LobeChat 密码
     ACCESS_CODE:
       title: ACCESS_CODE
+      sensitive: true
       type: secret
       description: 添加访问 LobeChat 服务的密码，你可以设置一个长密码以防被爆破
